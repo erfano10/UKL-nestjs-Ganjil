@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BillingStatus {
+  UNPAID
+  WAITING_VERIFICATION
+  PAID
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model users {
+  id                  Int                    @id @default(autoincrement())
+  name                String                 @db.VarChar(100)
+  email               String                 @unique @db.VarChar(150)
+  password            String                 @db.VarChar(255)
+  role                Role                   @default(CUSTOMER)
+  created_at          DateTime               @default(now())
+  updated_at          DateTime               @updatedAt
+  electricityAccounts electricity_accounts[]
+  payments            payments[]
+}
+
+model electricity_services {
+  id                  Int                    @id @default(autoincrement())
+  code                String                 @unique @db.VarChar(20)
+  name                String                 @db.VarChar(100)
+  power_va            Int
+  price_per_kwh       Decimal                @db.Decimal(12, 2)
+  is_active           Boolean
+  created_at          DateTime               @default(now())
+  updated_at          DateTime               @updatedAt
+  electricityAccounts electricity_accounts[]
+}
+
+model electricity_accounts {
+  id                     Int                  @id @default(autoincrement())
+  user_id                Int
+  user                   users                @relation(fields: [user_id], references: [id])
+  electricity_service_id Int
+  electricityServices    electricity_services @relation(fields: [electricity_service_id], references: [id])
+  customer_number        String               @unique @db.VarChar(30)
+  costumer_name          String               @db.VarChar(100)
+  address                String
+  status                 AccountStatus
+  created_at             DateTime             @default(now())
+  updated_at             DateTime             @updatedAt
+  billings               billings[]
+}
+
+model billings {
+  id                     Int                  @id @default(autoincrement())
+  electricity_account_id Int
+  electricity_account    electricity_accounts @relation(fields: [electricity_account_id], references: [id])
+  period_month           Int
+  period_year            Int
+  previous_meter         Decimal              @db.Decimal(12, 2)
+  current_meter          Decimal              @db.Decimal(12, 2)
+  consumption            Decimal              @db.Decimal(12, 2)
+  tariff_per_kwh         Decimal              @db.Decimal(12, 2)
+  amount                 Decimal              @db.Decimal(12, 2)
+  due_date               DateTime             @db.Date
+  status                 BillingStatus
+  created_at             DateTime             @default(now())
+  updated_at             DateTime             @updatedAt
+  payments               payments[]
+
+
+  @@unique([electricity_account_id, period_month, period_year])
+}
+
+model payments {
+  id            Int           @id @default(autoincrement())
+  billing_id    Int           @unique
+  billings      billings      @relation(fields: [billing_id], references: [id])
+  payment_proof String
+  status        PaymentStatus
+  verified_by   Int?
+  verifier      users?        @relation(fields: [verified_by], references: [id])
+  verified_at   DateTime?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+}

@@ -1,0 +1,12 @@
+-- AlterTable
+ALTER TABLE "billings" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "electricity_accounts" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "electricity_services" ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'CUSTOMER',
+ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP;
